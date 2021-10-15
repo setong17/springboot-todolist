@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -33,6 +34,16 @@ public class TodoService {
 
 
     /**
+     * TODO 리스트 조회
+     * @param userId
+     * @return
+     */
+    public List<TodoEntity> retrieve(final String userId) {
+        return repository.findByUserId(userId);
+    }
+
+
+    /**
      * TODO 리스트 저장
      * @param entity
      * @return
@@ -51,6 +62,49 @@ public class TodoService {
 
 
     /**
+     * TODO 리스트 수정
+     * @param entity
+     * @return
+     */
+    public List<TodoEntity> update(final TodoEntity entity) {
+
+        validate(entity);
+
+        // 기존 등록된 데이터 조회
+        final Optional<TodoEntity> original = repository.findById(entity.getId());
+
+        original.ifPresent(todo -> {
+            // 조회된 데이터가 있으면 값을 새로운 값으로 변경
+            todo.setTitle(entity.getTitle());
+            todo.setDone(entity.isDone());
+
+            // 저장 (update)
+            repository.save(todo);
+        });
+
+        return retrieve(entity.getUserId());
+    }
+
+
+    public List<TodoEntity> delete(final TodoEntity entity) {
+
+        validate(entity);
+
+        try {
+
+            // 삭제
+            repository.delete(entity);
+
+        } catch (Exception e) {
+            log.error("error deleting entity ", entity.getId(), e);
+            throw new RuntimeException("error deleting entity " + entity.getId());
+        }
+
+        return retrieve(entity.getUserId());
+    }
+
+
+    /**
      * Validation 체크
      * @param entity
      */
@@ -65,7 +119,5 @@ public class TodoService {
             throw new RuntimeException("Unknown user.");
         }
     }
-
-
 
 }

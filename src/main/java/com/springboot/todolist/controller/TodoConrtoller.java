@@ -35,6 +35,24 @@ public class TodoConrtoller {
     }
 
 
+    @GetMapping
+    public ResponseEntity<?> retrieveTodoList() {
+
+        String temporaryUserId = "temporary-user";
+
+        // TODO 리스트 조회
+        List<TodoEntity> todoList = todoService.retrieve(temporaryUserId);
+
+        List<TodoDTO> dtoList = todoList.stream().map(TodoDTO::new).collect(Collectors.toList());
+
+        ResponseDTO<TodoDTO> response = ResponseDTO.<TodoDTO>builder()
+                .data(dtoList)
+                .build();
+
+        return ResponseEntity.ok().body(response);
+    }
+
+
     @PostMapping
     public ResponseEntity<?> createTodo(@RequestBody TodoDTO dto) {
         try {
@@ -70,6 +88,59 @@ public class TodoConrtoller {
 
             return ResponseEntity.badRequest().body(response);
         }
+    }
+
+
+    @PutMapping
+    public ResponseEntity<?> udpateTodo(@RequestBody TodoDTO dto) {
+
+        String temporaryUserId = "temporary-user";
+
+        TodoEntity entity = TodoDTO.toEntity(dto);
+
+        entity.setUserId(temporaryUserId);
+
+        List<TodoEntity> todoList = todoService.update(entity);
+
+        List<TodoDTO> dtoList = todoList.stream().map(TodoDTO::new).collect(Collectors.toList());
+
+        ResponseDTO<TodoDTO> response = ResponseDTO.<TodoDTO>builder()
+                .data(dtoList)
+                .build();
+
+        return ResponseEntity.ok().body(response);
+    }
+
+
+    @DeleteMapping
+    public ResponseEntity<?> deleteTodo(@RequestBody TodoDTO dto) {
+
+        String temporaryUserId = "temporary-user";
+
+        TodoEntity entity = TodoDTO.toEntity(dto);
+
+        entity.setUserId(temporaryUserId);
+
+        try {
+
+            List<TodoEntity> todoList = todoService.delete(entity);
+
+            List<TodoDTO> dtoList = todoList.stream().map(TodoDTO::new).collect(Collectors.toList());
+
+            ResponseDTO<TodoDTO> response = ResponseDTO.<TodoDTO>builder()
+                    .data(dtoList)
+                    .build();
+
+            return ResponseEntity.ok().body(response);
+
+        } catch (Exception e) {
+            ResponseDTO<TodoDTO> response = ResponseDTO.<TodoDTO>builder()
+                    .error(e.getMessage())
+                    .build();
+
+            return ResponseEntity.badRequest().body(response);
+        }
+
     }
 
 }
