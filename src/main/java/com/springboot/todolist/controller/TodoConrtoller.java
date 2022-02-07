@@ -6,6 +6,7 @@ import com.springboot.todolist.model.TodoEntity;
 import com.springboot.todolist.service.TodoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
@@ -36,12 +37,12 @@ public class TodoConrtoller {
 
 
     @GetMapping
-    public ResponseEntity<?> retrieveTodoList() {
+    public ResponseEntity<?> retrieveTodoList(@AuthenticationPrincipal String userId) {
 
-        String temporaryUserId = "temporary-user";
+        //String temporaryUserId = "temporary-user";
 
         // TODO 리스트 조회
-        List<TodoEntity> todoList = todoService.retrieve(temporaryUserId);
+        List<TodoEntity> todoList = todoService.retrieve(userId);
 
         List<TodoDTO> dtoList = todoList.stream().map(TodoDTO::new).collect(Collectors.toList());
 
@@ -54,10 +55,13 @@ public class TodoConrtoller {
 
 
     @PostMapping
-    public ResponseEntity<?> createTodo(@RequestBody TodoDTO dto) {
+    public ResponseEntity<?> createTodo(
+            @AuthenticationPrincipal String userId
+            , @RequestBody TodoDTO dto) {
+
         try {
 
-            String temporaryUserId = "temporary-user";
+            //String temporaryUserId = "temporary-user";
 
             // TodoEntity 변환
             TodoEntity entity = TodoDTO.toEntity(dto);
@@ -66,9 +70,9 @@ public class TodoConrtoller {
             entity.setId(null);
 
             // 임시 사용자 아이디 설정
-            entity.setUserId(temporaryUserId);
+            entity.setUserId(userId);
 
-            // 데이터 저장
+            // 데이터 저장 - Todo 엔티티 생성
             List<TodoEntity> entityList = todoService.create(entity);
 
             // 자바 스트림 이용 - 리턴된 엔티티 리스트를 TodoDTO로 변환
@@ -82,8 +86,10 @@ public class TodoConrtoller {
             return ResponseEntity.ok().body(response);
 
         } catch (Exception e) {
+            String error = e.getMessage();
+
             ResponseDTO<TodoDTO> response = ResponseDTO.<TodoDTO>builder()
-                    .error(e.toString())
+                    .error(error)
                     .build();
 
             return ResponseEntity.badRequest().body(response);
@@ -92,13 +98,13 @@ public class TodoConrtoller {
 
 
     @PutMapping
-    public ResponseEntity<?> udpateTodo(@RequestBody TodoDTO dto) {
+    public ResponseEntity<?> udpateTodo(@AuthenticationPrincipal String userId, @RequestBody TodoDTO dto) {
 
-        String temporaryUserId = "temporary-user";
+        //String temporaryUserId = "temporary-user";
 
         TodoEntity entity = TodoDTO.toEntity(dto);
 
-        entity.setUserId(temporaryUserId);
+        entity.setUserId(userId);
 
         List<TodoEntity> todoList = todoService.update(entity);
 
@@ -113,13 +119,13 @@ public class TodoConrtoller {
 
 
     @DeleteMapping
-    public ResponseEntity<?> deleteTodo(@RequestBody TodoDTO dto) {
+    public ResponseEntity<?> deleteTodo(@AuthenticationPrincipal String userId, @RequestBody TodoDTO dto) {
 
-        String temporaryUserId = "temporary-user";
+        //String temporaryUserId = "temporary-user";
 
         TodoEntity entity = TodoDTO.toEntity(dto);
 
-        entity.setUserId(temporaryUserId);
+        entity.setUserId(userId);
 
         try {
 
